@@ -71,23 +71,31 @@ RSpec.describe Copy do
       expect(copy.held_at).to be_nil
     end
 
-    it "moves to held and sets held_at when held" do
+    it "moves to held and sets held_at and held_for_member_id when held" do
      copy = Copy.new(id: 1, isbn: "isbn-dune")
      today = Date.today
 
-     copy.hold!(on: today) 
+     copy.hold!(on: today, member_id: "member-1")
 
      expect(copy.status).to eq(:held)
      expect(copy.held_at).to eq(today)
+     expect(copy.held_for_member_id).to eq("member-1")
     end
 
     it "moves to available and clears held_at when hold is released" do
-      copy = Copy.new(id: 1, isbn: "isbn-dune", status: :held, held_at: Date.today + 4)
+      copy = Copy.new(
+        id: 1, 
+        isbn: "isbn-dune", 
+        status: :held, 
+        held_at: Date.today + 4,
+        held_for_member_id: "member-1"
+        )
 
       copy.release_hold!
 
       expect(copy.status).to eq(:available)
       expect(copy.held_at).to be_nil
+      expect(copy.held_for_member_id).to be_nil
     end
   end
 
