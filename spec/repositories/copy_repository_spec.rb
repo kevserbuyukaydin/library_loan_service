@@ -164,4 +164,16 @@ RSpec.describe InMemoryCopyRepository do
       expect(result).to contain_exactly(dune_copy_2, dune_copy_3)
     end
   end
+
+  describe "#next_identity" do
+    it "returns increasing ids on each call" do
+      repo = InMemoryCopyRepository.new
+
+      first_id = repo.next_identity
+      second_id = repo.next_identity
+
+      expect(first_id).to eq(1)
+      expect(second_id).to eq(2)
+    end
+  end
 end
