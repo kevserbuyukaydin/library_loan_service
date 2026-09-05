@@ -191,6 +191,21 @@ RSpec.describe InMemoryReservationRepository do
       expect(result).to be_nil
     end
   end
+
+  describe "#active_count_for_member" do
+    it "counts both pending and fulfilled reservations for the member" do
+      repo = InMemoryReservationRepository.new
+      member_1_pending_reservation = Reservation.new(id: 1, isbn: "isbn-dune", member_id: "member-1", requested_at: Time.now)
+      member_1_fulfilled_reservation = Reservation.new(id: 2, isbn: "isbn-solo", member_id: "member-1", requested_at: Time.now, status: :fulfilled)
+      member_2_reservation = Reservation.new(id: 3, isbn: "isbn-1984", member_id: "member-2", requested_at: Time.now)
+      
+      repo.save(member_1_pending_reservation)
+      repo.save(member_1_fulfilled_reservation)
+      repo.save(member_2_reservation)
+
+      expect(repo.active_count_for_member("member-1")).to eq(2)
+    end
+  end
   describe "#next_identity" do
     it "returns increasing ids on each call" do
       repo = InMemoryReservationRepository.new

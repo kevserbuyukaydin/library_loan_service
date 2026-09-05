@@ -58,6 +58,12 @@ class InMemoryReservationRepository < ReservationRepository
     end
   end
 
+  def active_count_for_member(member_id)
+    @reservations.values.count do |reservation|
+      reservation.member_id == member_id && (reservation.pending? || reservation.fulfilled?)
+    end
+  end
+
   def next_identity
     id = @next_id
     @next_id += 1
