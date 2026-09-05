@@ -3,13 +3,13 @@ require 'date'
 class Reservation
   STATUSES = %i[pending fulfilled].freeze
 
-  attr_reader :id, :isbn, :member_id, :requested_on, :status
+  attr_reader :id, :isbn, :member_id, :requested_at, :status
 
-  def initialize(id:, isbn:, member_id:, requested_on:, status: :pending)
+  def initialize(id:, isbn:, member_id:, requested_at:, status: :pending)
     @id = id
     @isbn = isbn
     @member_id = member_id
-    @requested_on = requested_on
+    @requested_at = requested_at
     @status = status
   end
 

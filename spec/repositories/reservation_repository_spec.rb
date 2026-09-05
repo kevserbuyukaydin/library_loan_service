@@ -8,7 +8,7 @@ RSpec.describe ReservationRepository do
                       id: 1, 
                       isbn: "isbn-dune",
                       member_id: "member-1",
-                      requested_on: Date.new(2026, 9, 1))
+                      requested_at: Time.now)
 
       expect {
         ReservationRepository.new.save(reservation)
@@ -65,7 +65,7 @@ RSpec.describe InMemoryReservationRepository do
                       id: 1, 
                       isbn: "isbn-dune",
                       member_id: "member-1",
-                      requested_on: Date.new(2026, 9, 1))
+                      requested_at: Time.now)
 
       repo.save(reservation)
 
@@ -80,7 +80,7 @@ RSpec.describe InMemoryReservationRepository do
                       id: 1, 
                       isbn: "isbn-dune",
                       member_id: "member-1",
-                      requested_on: Date.new(2026, 9, 1))
+                      requested_at: Time.now)
 
       repo.save(reservation)
       repo.remove(reservation.id)
