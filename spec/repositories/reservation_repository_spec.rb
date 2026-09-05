@@ -58,6 +58,7 @@ RSpec.describe ReservationRepository do
 end
 
 RSpec.describe InMemoryReservationRepository do
+  ONE_DAY_IN_SECONDS = 24 * 60 * 60 
   describe "#save and #find" do
     it "returns the saved reservation by id" do
       repo = InMemoryReservationRepository.new
@@ -86,6 +87,65 @@ RSpec.describe InMemoryReservationRepository do
       repo.remove(reservation.id)
 
       expect(repo.find(1)).to be_nil
+    end
+  end
+
+  describe "#queue_for" do
+    it "returns pending reservations for the isbn, ordered by request date" do
+      repo = InMemoryReservationRepository.new
+      earlier_reservation = Reservation.new(
+                              id: 1, 
+                              isbn: "isbn-1984",
+                              member_id: "member-1",
+                              requested_at: Time.now - ONE_DAY_IN_SECONDS
+                              )
+
+      later_reservation = Reservation.new(
+                            id: 2, 
+                            isbn: "isbn-1984",
+                            member_id: "member-2",
+                            requested_at: Time.now
+                            )
+
+      repo.save(later_reservation)
+      repo.save(earlier_reservation)
+
+      result = repo.queue_for("isbn-1984")
+
+      expect(result).to eq([earlier_reservation, later_reservation])
+    end
+
+    it "does not include fulfilled reservations" do
+      repo = InMemoryReservationRepository.new
+      earlier_reservation = Reservation.new(
+                              id: 1, 
+                              isbn: "isbn-1984",
+                              member_id: "member-1",
+                              requested_at: Time.now - ONE_DAY_IN_SECONDS
+                            )
+
+      later_reservation = Reservation.new(
+                            id: 2, 
+                            isbn: "isbn-1984",
+                            member_id: "member-2",
+                            requested_at: Time.now
+                          )
+
+      fulfilled_reservation = Reservation.new(
+                                id: 3, 
+                                isbn: "isbn-1984",
+                                member_id: "member-3",
+                                requested_at: Time.now,
+                                status: :fulfilled
+                              )           
+                                   
+      repo.save(later_reservation)
+      repo.save(earlier_reservation)
+      repo.save(fulfilled_reservation)
+
+      result = repo.queue_for("isbn-1984")
+
+      expect(result).to eq([earlier_reservation, later_reservation])
     end
   end
 

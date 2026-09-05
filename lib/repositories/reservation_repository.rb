@@ -42,6 +42,12 @@ class InMemoryReservationRepository < ReservationRepository
     @reservations.delete(id)
   end
 
+  def queue_for(isbn)
+    @reservations.values
+      .select { |reservation| reservation.isbn == isbn && reservation.pending? } 
+      .sort_by(&:requested_at)
+  end
+
   def next_identity
     id = @next_id
     @next_id += 1
