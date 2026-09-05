@@ -40,6 +40,14 @@ RSpec.describe ReservationRepository do
     end
   end
 
+  describe "#find_fulfilled_for" do
+    it "raises NotImplementedError" do
+      expect {
+        ReservationRepository.new.find_fulfilled_for(isbn: "isbn-dune", member_id: "member-1")
+      }.to raise_error(NotImplementedError)
+    end
+  end
+
   describe "#active_count_for_member" do
     it "raises NotImplementedError" do
       expect {
@@ -149,6 +157,40 @@ RSpec.describe InMemoryReservationRepository do
     end
   end
 
+  describe "#find_fulfilled_for" do
+    it "returns the fulfilled reservation for the given isbn and member" do
+      repo = InMemoryReservationRepository.new
+      fulfilled_reservation = Reservation.new(
+                                id: 1,
+                                isbn: "isbn-dune",
+                                member_id: "member-1",
+                                requested_at: Time.now,
+                                status: :fulfilled
+                              )
+
+      repo.save(fulfilled_reservation)
+
+      result = repo.find_fulfilled_for(isbn: "isbn-dune", member_id: "member-1")
+
+      expect(result).to eq(fulfilled_reservation)
+    end
+
+    it "returns nil when the reservation is pending" do
+      repo = InMemoryReservationRepository.new
+      pending_reservation = Reservation.new(
+                              id: 1,
+                              isbn: "isbn-dune",
+                              member_id: "member-1",
+                              requested_at: Time.now
+                            )
+
+      repo.save(pending_reservation)
+
+      result = repo.find_fulfilled_for(isbn: "isbn-dune", member_id: "member-1")
+
+      expect(result).to be_nil
+    end
+  end
   describe "#next_identity" do
     it "returns increasing ids on each call" do
       repo = InMemoryReservationRepository.new

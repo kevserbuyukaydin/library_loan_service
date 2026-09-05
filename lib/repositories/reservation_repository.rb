@@ -15,6 +15,10 @@ class ReservationRepository
     raise NotImplementedError
   end
 
+  def find_fulfilled_for(isbn:, member_id:)
+    raise NotImplementedError
+  end
+
   def active_count_for_member(member_id)
     raise NotImplementedError
   end
@@ -46,6 +50,12 @@ class InMemoryReservationRepository < ReservationRepository
     @reservations.values
       .select { |reservation| reservation.isbn == isbn && reservation.pending? } 
       .sort_by(&:requested_at)
+  end
+
+  def find_fulfilled_for(isbn:, member_id:)
+    @reservations.values.find do |reservation|
+      reservation.isbn == isbn && reservation.member_id == member_id && reservation.fulfilled?
+    end
   end
 
   def next_identity
