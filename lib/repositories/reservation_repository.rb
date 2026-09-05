@@ -18,9 +18,33 @@ class ReservationRepository
   def active_count_for_member(member_id)
     raise NotImplementedError
   end
-  
+
   def next_identity
     raise NotImplementedError
   end
 end
 
+class InMemoryReservationRepository < ReservationRepository
+  def initialize
+    @reservations = {}
+    @next_id = 1
+  end
+
+  def save(reservation)
+    @reservations[reservation.id] = reservation
+  end
+
+  def find(id)
+    @reservations[id]
+  end
+
+  def remove(id)
+    @reservations.delete(id)
+  end
+
+  def next_identity
+    id = @next_id
+    @next_id += 1
+    id
+  end
+end
