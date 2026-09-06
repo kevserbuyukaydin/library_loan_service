@@ -6,12 +6,14 @@ RSpec.describe Fine do
     it "creates a fine with the given attributes" do
       fine = Fine.new(
         id: 1,
-        member_id: "m1",
+        member_id: "member-1",
+        loan_id: 1,
         amount: Money.of(100, "TRY")
       )
 
       expect(fine.id).to eq(1)
-      expect(fine.member_id).to eq("m1")
+      expect(fine.member_id).to eq("member-1")
+      expect(fine.loan_id).to eq(1)
       expect(fine.paid?).to be false
       expect(fine.amount.amount).to eq(100)
     end
@@ -21,7 +23,8 @@ RSpec.describe Fine do
     it "changes paid status to true" do
       fine = Fine.new(
         id: 1,
-        member_id: "m1",
+        member_id: "member-1",
+        loan_id: 1,
         amount: Money.of(100, "TRY")
       )
 

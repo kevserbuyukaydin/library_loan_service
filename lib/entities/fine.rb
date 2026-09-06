@@ -1,9 +1,10 @@
 class Fine
-  attr_reader :id, :member_id, :amount, :paid
+  attr_reader :id, :member_id, :loan_id, :amount, :paid
 
-  def initialize(id:, member_id:, amount:, paid: false)
+  def initialize(id:, member_id:, loan_id:, amount:, paid: false)
     @id = id
     @member_id = member_id
+    @loan_id = loan_id
     @amount = amount
     @paid = paid
   end
