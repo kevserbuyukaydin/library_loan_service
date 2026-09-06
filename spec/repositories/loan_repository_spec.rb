@@ -72,34 +72,134 @@ RSpec.describe InMemoryLoanRepository do
   describe "#active_loans_for_member" do
     it "returns all loans for the given member" do
       repo = InMemoryLoanRepository.new
-      member_1_loan_1 = Loan.new(id: 1, copy_id: 1, member_id: "member-1", borrowed_on: Date.today, due_date: Date.today + 14)
-      member_1_loan_2 = Loan.new(id: 2, copy_id: 2, member_id: "member-1", borrowed_on: Date.today, due_date: Date.today + 14)
-      member_2_loan = Loan.new(id: 3, copy_id: 3, member_id: "member-2", borrowed_on: Date.today, due_date: Date.today + 14)
+      borrowed_on = Date.today - 30
+      due_date = borrowed_on + 14
 
-      repo.save(member_1_loan_1)
-      repo.save(member_1_loan_2)
-      repo.save(member_2_loan)
+      member_1_active_loan_1 = Loan.new(
+        id: 1, copy_id: 1, 
+        member_id: "member-1", 
+        borrowed_on: Date.today, 
+        due_date: Date.today + 14, 
+        returned_at: nil, 
+        status: :active
+      )
+      member_1_active_loan_2 = Loan.new(
+        id: 2, 
+        copy_id: 2, 
+        member_id: "member-1", 
+        borrowed_on: Date.today, 
+        due_date: Date.today + 14, 
+        returned_at: nil, 
+        status: :active
+      )
+      member_1_returned_loan = Loan.new(
+        id: 3, 
+        copy_id: 3, 
+        member_id: "member-1", 
+        borrowed_on: borrowed_on, 
+        due_date: due_date, 
+        returned_at: Date.today - 5, 
+        status: :returned
+      )
+      member_2_active_loan = Loan.new(
+        id: 4, 
+        copy_id: 4, 
+        member_id: "member-2", 
+        borrowed_on: Date.today, 
+        due_date: Date.today + 14, 
+        returned_at: nil, 
+        status: :active
+      )
+
+      repo.save(member_1_active_loan_1)
+      repo.save(member_1_active_loan_2)
+      repo.save(member_1_returned_loan)
+      repo.save(member_2_active_loan)
 
       result = repo.active_loans_for_member("member-1")
 
-      expect(result).to contain_exactly(member_1_loan_1, member_1_loan_2)
+      expect(result).to contain_exactly(member_1_active_loan_1, member_1_active_loan_2)
+    end
+
+    it "does not include returned loans" do
+      repo = InMemoryLoanRepository.new
+      member_1_active_loan = Loan.new(
+        id: 1, 
+        copy_id: 1, 
+        member_id: "member-1", 
+        borrowed_on: Date.today, 
+        due_date: Date.today + 14, 
+        returned_at: nil, 
+        status: :active
+      )
+      member_1_returned_loan = Loan.new(
+        id: 2, 
+        copy_id: 2, 
+        member_id: "member-1", 
+        borrowed_on: Date.today, 
+        due_date: Date.today + 14, 
+        returned_at: Date.today + 20, 
+        status: :returned
+      )
+
+      repo.save(member_1_active_loan)
+      repo.save(member_1_returned_loan)
+
+      result = repo.active_loans_for_member("member-1")
+
+      expect(result).to contain_exactly(member_1_active_loan)
     end
   end
 
   describe "#find_active_loan_for_copy" do
     it "returns the active loan for the given copy" do
       repo = InMemoryLoanRepository.new
-      member_1_loan_1 = Loan.new(id: 1, copy_id: 1, member_id: "member-1", borrowed_on: Date.today, due_date: Date.today + 14)
-      member_1_loan_2 = Loan.new(id: 2, copy_id: 2, member_id: "member-1", borrowed_on: Date.today, due_date: Date.today + 14)
-      member_2_loan = Loan.new(id: 3, copy_id: 3, member_id: "member-2", borrowed_on: Date.today, due_date: Date.today + 14)
+      borrowed_on = Date.today - 30
+      due_date = borrowed_on + 14
 
-      repo.save(member_1_loan_1)
-      repo.save(member_1_loan_2)
-      repo.save(member_2_loan)
+      member_1_active_loan_1 = Loan.new(id: 1, copy_id: 1, member_id: "member-1", borrowed_on: Date.today, due_date: Date.today + 14)
+      member_1_active_loan_2 = Loan.new(id: 2, copy_id: 2, member_id: "member-1", borrowed_on: Date.today, due_date: Date.today + 14)
+      member_2_active_loan = Loan.new(id: 3, copy_id: 3, member_id: "member-2", borrowed_on: Date.today, due_date: Date.today + 14)
+      member_3_returned_loan = Loan.new(
+        id: 4, 
+        copy_id: 3, 
+        member_id: "member-2", 
+        borrowed_on: borrowed_on, 
+        due_date: due_date,
+        returned_at: Date.today - 5,
+        status: :returned
+      )
+
+      repo.save(member_1_active_loan_1)
+      repo.save(member_1_active_loan_2)
+      repo.save(member_2_active_loan)
+      repo.save(member_3_returned_loan)
 
       result = repo.find_active_loan_for_copy(3)
 
-      expect(result).to eq(member_2_loan)
+      expect(result).to eq(member_2_active_loan)
+    end
+
+    it "returns nil when the copy has no active loan" do
+      repo = InMemoryLoanRepository.new
+      borrowed_on = Date.today - 30
+      due_date = borrowed_on + 14
+
+      returned_loan = Loan.new(
+        id: 4,
+        copy_id: 3,
+        member_id: "member-2",
+        borrowed_on: borrowed_on,
+        due_date: due_date,
+        returned_at: Date.today - 5,
+        status: :returned
+      )
+
+      repo.save(returned_loan)
+
+      result = repo.find_active_loan_for_copy(3)
+
+      expect(result).to be_nil
     end
   end
 

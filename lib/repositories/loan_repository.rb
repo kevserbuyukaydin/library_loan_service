@@ -35,11 +35,11 @@ class InMemoryLoanRepository < LoanRepository
   end
 
   def active_loans_for_member(member_id)
-    @loans.values.select { |loan| loan.member_id == member_id }
+    @loans.values.select { |loan| loan.member_id == member_id && loan.active? }
   end
 
   def find_active_loan_for_copy(copy_id)
-    @loans.values.find { |loan| loan.copy_id == copy_id }
+    @loans.values.find { |loan| loan.copy_id == copy_id && loan.active? }
   end
 
   def next_identity
