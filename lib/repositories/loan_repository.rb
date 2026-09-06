@@ -7,10 +7,6 @@ class LoanRepository
     raise NotImplementedError
   end
 
-  def remove(id)
-    raise NotImplementedError
-  end
-
   def active_loans_for_member(member_id)
     raise NotImplementedError
   end
@@ -36,10 +32,6 @@ class InMemoryLoanRepository < LoanRepository
 
   def find(id)
     @loans[id]
-  end
-
-  def remove(id)
-    @loans.delete(id)
   end
 
   def active_loans_for_member(member_id)

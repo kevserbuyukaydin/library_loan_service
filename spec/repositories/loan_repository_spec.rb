@@ -26,14 +26,6 @@ RSpec.describe LoanRepository do
     end
   end
 
-  describe "#remove" do
-    it "raises NotImplementedError" do
-      expect {
-        LoanRepository.new.remove(1)
-      }.to raise_error(NotImplementedError)
-    end
-  end
-
   describe "#active_loans_for_member" do
     it "raises NotImplementedError" do
       expect {
@@ -74,24 +66,6 @@ RSpec.describe InMemoryLoanRepository do
       repo.save(loan)
 
       expect(repo.find(1)).to eq(loan)
-    end
-  end
-
-  describe "#remove" do
-    it "removes the loan so it can no longer be found" do
-      repo = InMemoryLoanRepository.new
-      loan = Loan.new(
-              id: 1, 
-              copy_id: 1, 
-              member_id: "member-1",                 
-              borrowed_on: Date.today, 
-              due_date: Date.today + 14
-             )
-
-      repo.save(loan)
-      repo.remove(1)
-
-      expect(repo.find(1)).to be_nil
     end
   end
 
