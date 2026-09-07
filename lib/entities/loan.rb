@@ -31,4 +31,12 @@ class Loan
   def overdue?(today)
     today > due_date
   end
+
+  def overdue_at_return?
+    returned_at > due_date
+  end
+
+  def overdue_days_at_return
+    (returned_at - due_date).to_i
+  end
 end
