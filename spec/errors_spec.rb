@@ -41,3 +41,10 @@ RSpec.describe AlreadyReservedError do
     expect(error.message).to eq("Member member-1 already has an active reservation for isbn-ghost")
   end
 end
+
+RSpec.describe CopyInUseError do
+  it "includes the copy_id in the message" do
+    error = CopyInUseError.new(3)
+    expect(error.message).to eq("Copy 3 is currently in use and cannot be withdrawn")
+  end
+end

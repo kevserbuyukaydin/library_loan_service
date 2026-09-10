@@ -1,16 +1,17 @@
 require 'date'
 
 class Copy
-  STATUSES = %i[available on_loan held].freeze
+  STATUSES = %i[available on_loan held withdrawn].freeze
 
-  attr_reader :id, :isbn, :status, :held_at, :held_for_member_id
+  attr_reader :id, :isbn, :status, :held_at, :held_for_member_id, :withdrawn_at
 
-  def initialize(id:, isbn:, status: :available, held_at: nil, held_for_member_id: nil)
+  def initialize(id:, isbn:, status: :available, held_at: nil, held_for_member_id: nil, withdrawn_at: nil)
     @id = id
     @isbn = isbn
     @status = status
     @held_at = held_at
     @held_for_member_id = held_for_member_id
+    @withdrawn_at = withdrawn_at
   end
 
   def available?
@@ -23,6 +24,10 @@ class Copy
 
   def held?
     status == :held
+  end
+
+  def withdrawn?
+    status == :withdrawn
   end
 
   def loan!
@@ -47,6 +52,11 @@ class Copy
     @status = :available
     @held_at = nil
     @held_for_member_id = nil
+  end
+  
+  def withdraw!(on:)
+    @status = :withdrawn
+    @withdrawn_at = on
   end
 
   def hold_expired?(today, expiry_days: 3)

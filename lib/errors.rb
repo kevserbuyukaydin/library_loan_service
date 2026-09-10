@@ -33,3 +33,9 @@ class AlreadyReservedError < StandardError
     super("Member #{member_id} already has an active reservation for #{isbn}")
   end
 end
+
+class CopyInUseError < StandardError
+  def initialize(copy_id)
+    super("Copy #{copy_id} is currently in use and cannot be withdrawn")
+  end
+end

@@ -52,6 +52,20 @@ RSpec.describe Copy do
     end
   end
 
+  describe "#withdrawn?" do
+    it "returns true when status is withdrawn" do
+      copy = Copy.new(id: 1, isbn: "isbn-dune", status: :withdrawn, withdrawn_at: Date.today)
+
+      expect(copy.withdrawn?).to be true
+    end
+
+    it "returns false when status is not withdrawn" do
+      copy = Copy.new(id: 1, isbn: "isbn-dune")
+
+      expect(copy.withdrawn?).to be false
+    end
+  end
+
   describe "state transitions" do
     it "moves to on_loan when loaned" do
       copy = Copy.new(id: 1, isbn: "isbn-dune", status: :held, held_at: Date.today)
@@ -96,6 +110,16 @@ RSpec.describe Copy do
       expect(copy.status).to eq(:available)
       expect(copy.held_at).to be_nil
       expect(copy.held_for_member_id).to be_nil
+    end
+
+    it "moves to withdrawn and sets withdrawn_at when withdrawn" do
+      copy = Copy.new(id: 1, isbn: "isbn-dune")
+      today = Date.today
+
+      copy.withdraw!(on: today)
+
+      expect(copy.status).to eq(:withdrawn)
+      expect(copy.withdrawn_at).to eq(today)
     end
   end
 
