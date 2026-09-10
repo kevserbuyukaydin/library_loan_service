@@ -68,7 +68,9 @@ time that book is queried or borrowed, rather than the instant it
 lapses — an accepted tradeoff given the constraint. If the queue for
 that book still has an eligible waiting member, that member takes
 priority over a new, unrelated borrow request; the copy only becomes
-freely available if no one in the queue is eligible.
+freely available if no one in the queue is eligible. Confirmed with
+the course instructor as an appropriate approach given the
+no-framework constraint.
 
 ### Why a failed borrow does not automatically create a reservation
 
