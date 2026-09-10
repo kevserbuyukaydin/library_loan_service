@@ -8,9 +8,8 @@ class CatalogueService
   end
 
   def add_copy(isbn:)
-    book = @book_repository.find(isbn)
-    raise BookNotFoundError.new(isbn) if book.nil?
-
+    ensure_book_exists(isbn)
+    
     copy = Copy.new(id: @copy_repository.next_identity, isbn: isbn)
     @copy_repository.save(copy)
     copy
@@ -25,6 +24,11 @@ class CatalogueService
   end
 
   private
+
+  def ensure_book_exists(isbn)
+    book = @book_repository.find(isbn)
+    raise BookNotFoundError.new(isbn) if book.nil?
+  end
 
   def find_copy(copy_id)
     copy = @copy_repository.find(copy_id)
