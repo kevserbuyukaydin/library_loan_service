@@ -30,6 +30,10 @@ class Copy
     status == :withdrawn
   end
 
+  def in_use?
+    on_loan? || held?
+  end
+
   def loan!
     @status = :on_loan
     @held_at = nil

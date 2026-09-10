@@ -39,3 +39,9 @@ class CopyInUseError < StandardError
     super("Copy #{copy_id} is currently in use and cannot be withdrawn")
   end
 end
+
+class CopyNotFoundError < StandardError
+  def initialize(copy_id)
+    super("No copy with id: #{copy_id}")
+  end
+end

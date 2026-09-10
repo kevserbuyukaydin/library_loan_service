@@ -17,10 +17,18 @@ class CatalogueService
   end
 
   def withdraw_copy(copy_id)
-    copy = @copy_repository.find(copy_id)
-    raise CopyInUseError.new(copy_id) if copy.on_loan? || copy.held?
+    copy = find_copy(copy_id)
+    raise CopyInUseError.new(copy_id) if copy.in_use?
 
     copy.withdraw!(on: @clock.today)
     @copy_repository.save(copy)
+  end
+
+  private
+
+  def find_copy(copy_id)
+    copy = @copy_repository.find(copy_id)
+    raise CopyNotFoundError.new(copy_id) if copy.nil?
+    copy
   end
 end

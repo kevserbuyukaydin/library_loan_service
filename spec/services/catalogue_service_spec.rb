@@ -106,6 +106,20 @@ RSpec.describe CatalogueService do
         service.withdraw_copy(copy.id)
       }.to raise_error(CopyInUseError, "Copy #{copy.id} is currently in use and cannot be withdrawn") 
     end
+
+    it "raises CopyNotFoundError when the copy does not exist" do
+      copy_repo = InMemoryCopyRepository.new
+      clock = FixedClock.new(Date.new(2026, 9, 10))
+      service = CatalogueService.new(
+        book_repository: InMemoryBookRepository.new,
+        copy_repository: copy_repo,
+        clock: clock
+      )
+
+      expect {
+        service.withdraw_copy(999)
+      }.to raise_error(CopyNotFoundError, "No copy with id: 999")
+    end
   end
 end
 

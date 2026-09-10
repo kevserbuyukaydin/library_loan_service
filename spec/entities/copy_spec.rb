@@ -66,6 +66,23 @@ RSpec.describe Copy do
     end
   end
 
+  describe "#in_use?" do
+    it "returns true when on loan" do
+      copy = Copy.new(id: 1, isbn: "isbn-dune", status: :on_loan)
+      expect(copy.in_use?).to be true
+    end
+
+    it "returns true when held" do
+      copy = Copy.new(id: 1, isbn: "isbn-dune", status: :held, held_at: Date.today, held_for_member_id: "member-1")
+      expect(copy.in_use?).to be true
+    end
+
+    it "returns false when available" do
+      copy = Copy.new(id: 1, isbn: "isbn-dune")
+      expect(copy.in_use?).to be false
+    end
+  end
+
   describe "state transitions" do
     it "moves to on_loan when loaned" do
       copy = Copy.new(id: 1, isbn: "isbn-dune", status: :held, held_at: Date.today)
