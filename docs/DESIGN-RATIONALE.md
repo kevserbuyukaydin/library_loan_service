@@ -96,3 +96,33 @@ intent to wait. Borrowing hands over a physical copy, which the
 library is entitled to withhold from a member with unpaid fines.
 The two operations are checked independently: BorrowingEligibilityPolicy
 is consulted by borrow(), never by reserve().
+
+## Catalogue Decisions
+
+### Why Copy has a withdrawn status instead of being deleted from the catalogue
+
+Loan and Fine records reference a copy via copy_id, and those
+records persist. If a copy were deleted outright, any loan or fine
+referencing it would point at nothing. Withdrawing sets status to
+:withdrawn instead, so the copy remains a valid reference while no
+longer being available, on loan, or held.
+
+### Why withdrawing a copy is blocked for both on_loan and held copies, not just on_loan
+
+The brief only requires that withdrawing a copy currently on loan
+must fail. A held copy has already been promised to a specific
+member (via a fulfilled reservation and a notification), even
+though they haven't collected it yet. Withdrawing it out from under
+them would leave that reservation pointing at a copy that no longer
+exists in a usable state. CopyInUseError covers both cases.
+
+### Why CatalogueService does not check who is allowed to withdraw a copy
+
+Authorization — deciding whether the caller is permitted to perform
+an admin action — belongs to a boundary layer (a controller, a
+policy check, middleware), which this project deliberately excludes
+(no UI, no controllers, no framework). CatalogueService assumes its
+caller is already authorized; enforcing that assumption is the
+responsibility of whatever boundary would sit in front of this
+service in a real deployment. This is a deliberate scope boundary,
+not an oversight.
