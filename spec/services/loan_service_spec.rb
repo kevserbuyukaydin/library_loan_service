@@ -43,5 +43,74 @@ RSpec.describe LoanService do
       expect(loan.due_date).to eq(Date.new(2026, 9, 24))
       expect(copy_repo.find(1).status).to eq(:on_loan)
     end
+
+    it "raises MemberNotFoundError when the member does not exist" do
+      member_repo = InMemoryMemberRepository.new
+      book_repo = InMemoryBookRepository.new
+      loan_repo = InMemoryLoanRepository.new
+      copy_repo = InMemoryCopyRepository.new
+      clock = FixedClock.new(Date.new(2026, 9, 10))
+
+      service = LoanService.new(
+        member_repository: member_repo,
+        book_repository: book_repo,
+        loan_repository: loan_repo,
+        copy_repository: copy_repo,
+        clock: clock
+      )
+
+      expect {
+        service.borrow(member_id: "member-1", isbn: "isbn-dune")
+      }.to raise_error(MemberNotFoundError)
+    end
+
+    it "raises BookNotFoundError when the book does not exist" do
+      member_repo = InMemoryMemberRepository.new
+      book_repo = InMemoryBookRepository.new
+      loan_repo = InMemoryLoanRepository.new
+      copy_repo = InMemoryCopyRepository.new
+      clock = FixedClock.new(Date.new(2026, 9, 10))
+
+      service = LoanService.new(
+        member_repository: member_repo,
+        book_repository: book_repo,
+        loan_repository: loan_repo,
+        copy_repository: copy_repo,
+        clock: clock
+      )
+
+      member = Member.new(id: "member-1", email: "alice@example.com", tier: StandardTier.new)
+      member_repo.save(member)
+
+      expect {
+        service.borrow(member_id: "member-1", isbn: "isbn-dune")
+      }.to raise_error(BookNotFoundError)
+    end
+
+    it "raises NoCopiesAvailableError when no copies are available" do
+      member_repo = InMemoryMemberRepository.new
+      book_repo = InMemoryBookRepository.new
+      loan_repo = InMemoryLoanRepository.new
+      copy_repo = InMemoryCopyRepository.new
+      clock = FixedClock.new(Date.new(2026, 9, 10))
+
+      service = LoanService.new(
+        member_repository: member_repo,
+        book_repository: book_repo,
+        loan_repository: loan_repo,
+        copy_repository: copy_repo,
+        clock: clock
+      )
+
+      member = Member.new(id: "member-1", email: "alice@example.com", tier: StandardTier.new)
+      member_repo.save(member)
+
+      book = Book.new(isbn: "isbn-dune", title: "Dune")
+      book_repo.save(book)
+
+      expect {
+        service.borrow(member_id: "member-1", isbn: "isbn-dune")
+      }.to raise_error(NoCopiesAvailableError)
+    end
   end
 end
