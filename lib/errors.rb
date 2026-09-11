@@ -45,3 +45,9 @@ class CopyNotFoundError < StandardError
     super("No copy with id: #{copy_id}")
   end
 end
+
+class MemberNotFoundError < StandardError
+  def initialize(member_id)
+    super("No member with id: #{member_id}")
+  end
+end
