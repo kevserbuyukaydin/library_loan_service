@@ -48,3 +48,10 @@ RSpec.describe CopyInUseError do
     expect(error.message).to eq("Copy 3 is currently in use and cannot be withdrawn")
   end
 end
+
+RSpec.describe CopyAvailableError do
+  it "includes the isbn in the message" do
+    error = CopyAvailableError.new("isbn-dune")
+    expect(error.message).to eq("A copy of isbn-dune is available - borrow it directly instead of reserving")
+  end
+end

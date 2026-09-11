@@ -51,3 +51,9 @@ class MemberNotFoundError < StandardError
     super("No member with id: #{member_id}")
   end
 end
+
+class CopyAvailableError < StandardError
+  def initialize(isbn)
+    super("A copy of #{isbn} is available - borrow it directly instead of reserving")
+  end
+end

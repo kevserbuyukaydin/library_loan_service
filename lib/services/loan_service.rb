@@ -34,6 +34,7 @@ class LoanService
   def reserve(member_id:, isbn:)
     member = find_member(member_id)
     ensure_book_exists(isbn)
+    ensure_no_available_copy(isbn)
     ensure_not_already_reserved(member_id, isbn)
     ensure_reservation_limit_not_exceeded(member)
 
@@ -103,5 +104,10 @@ class LoanService
   def ensure_reservation_limit_not_exceeded(member)
     open_count = @reservation_repository.open_reservation_count_for_member(member.id)
     raise ReservationLimitExceededError.new(member.id, member.tier.max_reservations) if open_count >= member.tier.max_reservations
+  end
+
+  def ensure_no_available_copy(isbn)
+    copy = @copy_repository.available_copy_for(isbn)
+    raise CopyAvailableError.new(isbn) unless copy.nil?
   end
 end
