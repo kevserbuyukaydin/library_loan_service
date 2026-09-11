@@ -38,7 +38,7 @@ end
 RSpec.describe AlreadyReservedError do
   it "includes the member_id and isbn in the message" do
     error = AlreadyReservedError.new("member-1", "isbn-ghost")
-    expect(error.message).to eq("Member member-1 already has an active reservation for isbn-ghost")
+    expect(error.message).to eq("Member member-1 already has an open reservation for isbn-ghost")
   end
 end
 

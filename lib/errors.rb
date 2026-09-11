@@ -30,7 +30,7 @@ end
 
 class AlreadyReservedError < StandardError
   def initialize(member_id, isbn)
-    super("Member #{member_id} already has an active reservation for #{isbn}")
+    super("Member #{member_id} already has an open reservation for #{isbn}")
   end
 end
 

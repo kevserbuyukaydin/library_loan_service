@@ -1,11 +1,21 @@
 require_relative "../entities/loan"
+require_relative "../entities/reservation"
 
 class LoanService
-  def initialize(member_repository:, book_repository:, loan_repository:, copy_repository:, borrowing_eligibility_policy:, clock:)
+  def initialize(
+    member_repository:,
+    book_repository:,
+    loan_repository:,
+    copy_repository:,
+    reservation_repository:,
+    borrowing_eligibility_policy:,
+    clock:
+  )
     @member_repository = member_repository
     @book_repository = book_repository
     @loan_repository = loan_repository
     @copy_repository = copy_repository
+    @reservation_repository = reservation_repository
     @borrowing_eligibility_policy = borrowing_eligibility_policy
     @clock = clock
   end
@@ -19,6 +29,22 @@ class LoanService
     today = @clock.today
 
     create_loan(member: member, copy: copy, member_id: member_id, today: today)
+  end
+
+  def reserve(member_id:, isbn:)
+    member = find_member(member_id)
+    ensure_book_exists(isbn)
+    ensure_not_already_reserved(member_id, isbn)
+    ensure_reservation_limit_not_exceeded(member)
+
+    reservation = Reservation.new(
+      id: @reservation_repository.next_identity,
+      isbn: isbn,
+      member_id: member_id,
+      requested_at: Time.now
+    )
+    @reservation_repository.save(reservation)
+    reservation
   end
 
   private
@@ -66,5 +92,16 @@ class LoanService
 
   def ensure_eligible_to_borrow(member)
     raise OutstandingFinesError.new(member.id) unless @borrowing_eligibility_policy.eligible?(member.id)
+  end
+
+  def ensure_not_already_reserved(member_id, isbn)
+    if @reservation_repository.has_open_reservation?(isbn: isbn, member_id: member_id)
+      raise AlreadyReservedError.new(member_id, isbn) 
+    end
+  end
+
+  def ensure_reservation_limit_not_exceeded(member)
+    open_count = @reservation_repository.open_reservation_count_for_member(member.id)
+    raise ReservationLimitExceededError.new(member.id, member.tier.max_reservations) if open_count >= member.tier.max_reservations
   end
 end
