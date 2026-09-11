@@ -48,10 +48,10 @@ RSpec.describe ReservationRepository do
     end
   end
 
-  describe "#open_count_for_member" do
+  describe "#open_reservation_count_for_member" do
     it "raises NotImplementedError" do
       expect {
-        ReservationRepository.new.open_count_for_member("member-1")
+        ReservationRepository.new.open_reservation_count_for_member("member-1")
       }.to raise_error(NotImplementedError)
     end
   end
@@ -123,7 +123,7 @@ RSpec.describe InMemoryReservationRepository do
       expect(result).to eq([earlier_reservation, later_reservation])
     end
 
-    it "does not include fulfilled reservations" do
+    it "does not include awaiting pickup reservations" do
       repo = InMemoryReservationRepository.new
       earlier_reservation = Reservation.new(
                               id: 1, 
@@ -139,17 +139,17 @@ RSpec.describe InMemoryReservationRepository do
                             requested_at: Time.now
                           )
 
-      fulfilled_reservation = Reservation.new(
-                                id: 3, 
-                                isbn: "isbn-1984",
-                                member_id: "member-3",
-                                requested_at: Time.now,
-                                status: :fulfilled
-                              )           
+      awaiting_pickup_reservation = Reservation.new(
+                                      id: 3, 
+                                      isbn: "isbn-1984",
+                                      member_id: "member-3",
+                                      requested_at: Time.now,
+                                      status: :awaiting_pickup
+                                    )           
                                    
       repo.save(later_reservation)
       repo.save(earlier_reservation)
-      repo.save(fulfilled_reservation)
+      repo.save(awaiting_pickup_reservation)
 
       result = repo.queue_for("isbn-1984")
 
@@ -192,7 +192,7 @@ RSpec.describe InMemoryReservationRepository do
     end
   end
 
-  describe "#open_count_for_member" do
+  describe "#open_reservation_count_for_member" do
     it "counts both pending and awaiting pickup reservations for the member" do
       repo = InMemoryReservationRepository.new
       member_1_pending_reservation = Reservation.new(id: 1, isbn: "isbn-dune", member_id: "member-1", requested_at: Time.now)
@@ -203,7 +203,7 @@ RSpec.describe InMemoryReservationRepository do
       repo.save(member_1_awaiting_pickup_reservation)
       repo.save(member_2_reservation)
 
-      expect(repo.open_count_for_member("member-1")).to eq(2)
+      expect(repo.open_reservation_count_for_member("member-1")).to eq(2)
     end
   end
   describe "#next_identity" do

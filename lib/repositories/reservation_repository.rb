@@ -19,7 +19,11 @@ class ReservationRepository
     raise NotImplementedError
   end
 
-  def open_count_for_member(member_id)
+  def open_reservation_count_for_member(member_id)
+    raise NotImplementedError
+  end
+
+  def has_open_reservation?(isbn:, member_id:)
     raise NotImplementedError
   end
 
@@ -58,9 +62,15 @@ class InMemoryReservationRepository < ReservationRepository
     end
   end
 
-  def open_count_for_member(member_id)
+  def open_reservation_count_for_member(member_id)
     @reservations.values.count do |reservation|
       reservation.member_id == member_id && reservation.open?
+    end
+  end
+
+  def has_open_reservation?(isbn:, member_id:)
+    @reservations.values.any? do |reservation|
+      reservation.isbn == isbn && reservation.member_id == member_id && reservation.open?
     end
   end
 
