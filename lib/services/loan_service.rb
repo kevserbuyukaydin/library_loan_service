@@ -1,18 +1,20 @@
 require_relative "../entities/loan"
 
 class LoanService
-  def initialize(member_repository:, book_repository:, loan_repository:, copy_repository:, clock:)
+  def initialize(member_repository:, book_repository:, loan_repository:, copy_repository:, borrowing_eligibility_policy:, clock:)
     @member_repository = member_repository
     @book_repository = book_repository
     @loan_repository = loan_repository
     @copy_repository = copy_repository
+    @borrowing_eligibility_policy = borrowing_eligibility_policy
     @clock = clock
   end
 
   def borrow(member_id:, isbn:)
     member = find_member(member_id)
     ensure_book_exists(isbn)
-    ensure_loan_limit_not_exceeded(member) 
+    ensure_loan_limit_not_exceeded(member)
+    ensure_eligible_to_borrow(member)
     copy = find_available_copy(isbn)
     today = @clock.today
 
@@ -60,5 +62,9 @@ class LoanService
   def ensure_loan_limit_not_exceeded(member)
     active_loans_count = @loan_repository.active_loans_for_member(member.id).size
     raise LoanLimitExceededError.new(member.id, member.tier.max_loans) if active_loans_count >= member.tier.max_loans
+  end
+
+  def ensure_eligible_to_borrow(member)
+    raise OutstandingFinesError.new(member.id) unless @borrowing_eligibility_policy.eligible?(member.id)
   end
 end

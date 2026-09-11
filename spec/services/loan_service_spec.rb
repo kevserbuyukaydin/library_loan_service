@@ -3,10 +3,14 @@ require_relative "../../lib/repositories/member_repository"
 require_relative "../../lib/repositories/book_repository"
 require_relative "../../lib/repositories/copy_repository"
 require_relative "../../lib/repositories/loan_repository"
+require_relative "../../lib/repositories/fine_repository"
 require_relative "../../lib/entities/member"
 require_relative "../../lib/entities/book"
 require_relative "../../lib/entities/copy"
+require_relative "../../lib/entities/fine"
 require_relative "../../lib/policies/membership_tier"
+require_relative "../../lib/policies/borrowing_eligibility_policy"
+require_relative "../../lib/value_objects/money"
 require_relative "../../lib/ports/clock"
 require_relative "../../lib/errors"
 
@@ -16,13 +20,16 @@ RSpec.describe LoanService do
     let(:book_repo) { InMemoryBookRepository.new }
     let(:loan_repo) { InMemoryLoanRepository.new }
     let(:copy_repo) { InMemoryCopyRepository.new }
+    let(:fine_repo) { InMemoryFineRepository.new }
     let(:clock) { FixedClock.new(Date.new(2026, 9, 10)) }
+    
     let(:service) do
       LoanService.new(
         member_repository: member_repo,
         book_repository: book_repo,
         loan_repository: loan_repo,
         copy_repository: copy_repo,
+        borrowing_eligibility_policy: DefaultBorrowingEligibilityPolicy.new(fine_repo),
         clock: clock
       )
     end
@@ -96,6 +103,29 @@ RSpec.describe LoanService do
       expect {
         service.borrow(member_id: "member-1", isbn: "isbn-4")
       }.to raise_error(LoanLimitExceededError)
+    end
+
+    it "raises OutstandingFinesError when the member has unpaid fines" do
+      member = Member.new(id: "member-1", email: "alice@example.com", tier: StandardTier.new)
+      member_repo.save(member)
+
+      book = Book.new(isbn: "isbn-dune", title: "Dune")
+      book_repo.save(book)    
+
+      copy = Copy.new(id: 1, isbn: "isbn-dune")
+      copy_repo.save(copy)
+
+      unpaid_fine = Fine.new(
+        id: fine_repo.next_identity, 
+        member_id: "member-1", 
+        loan_id: 1,
+        amount: Money.of(100, "TRY"), 
+        paid: false)
+      fine_repo.save(unpaid_fine)
+
+      expect {
+        service.borrow(member_id: "member-1", isbn: "isbn-dune")
+      }.to raise_error(OutstandingFinesError)
     end
   end
 end
