@@ -23,6 +23,7 @@ RSpec.describe Loan do
       expect(loan.due_date).to eq(due_date)
       expect(loan.returned_at).to be_nil
       expect(loan.status).to eq(:active)
+      expect(loan.renewal_count).to eq(0)
     end
   end
 
@@ -120,6 +121,46 @@ RSpec.describe Loan do
 
       expect(loan.status).to eq(:returned)
       expect(loan.returned_at).to eq(returned_at)
+    end
+  end
+
+  describe "#renew!" do
+    it "extends due_date by the given number of days" do
+      borrowed_on = Date.today
+      due_date = borrowed_on + 14
+
+      loan = Loan.new(
+        id: 1,
+        copy_id: 1,
+        member_id: "member-1",
+        borrowed_on: borrowed_on,
+        due_date: due_date,
+        returned_at: nil,
+        status: :active
+      )
+
+      loan.renew!(additional_days: 14)
+
+      expect(loan.due_date).to eq(due_date + 14)
+    end
+
+    it "increments renewal_count" do
+      borrowed_on = Date.today
+      due_date = borrowed_on + 14
+
+      loan = Loan.new(
+        id: 1,
+        copy_id: 1,
+        member_id: "member-1",
+        borrowed_on: borrowed_on,
+        due_date: due_date,
+        returned_at: nil,
+        status: :active
+      )
+
+      loan.renew!(additional_days: 14)
+
+      expect(loan.renewal_count).to eq(1)
     end
   end
 
