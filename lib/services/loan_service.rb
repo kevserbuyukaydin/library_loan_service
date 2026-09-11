@@ -12,6 +12,7 @@ class LoanService
   def borrow(member_id:, isbn:)
     member = find_member(member_id)
     ensure_book_exists(isbn)
+    ensure_loan_limit_not_exceeded(member) 
     copy = find_available_copy(isbn)
     today = @clock.today
 
@@ -54,5 +55,10 @@ class LoanService
     @copy_repository.save(copy)
 
     loan
+  end
+
+  def ensure_loan_limit_not_exceeded(member)
+    active_loans_count = @loan_repository.active_loans_for_member(member.id).size
+    raise LoanLimitExceededError.new(member.id, member.tier.max_loans) if active_loans_count >= member.tier.max_loans
   end
 end

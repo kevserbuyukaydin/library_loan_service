@@ -12,21 +12,22 @@ require_relative "../../lib/errors"
 
 RSpec.describe LoanService do
   describe "#borrow" do
-    it "creates a loan and marks the copy as on loan" do
-      member_repo = InMemoryMemberRepository.new
-      book_repo = InMemoryBookRepository.new
-      loan_repo = InMemoryLoanRepository.new
-      copy_repo = InMemoryCopyRepository.new
-      clock = FixedClock.new(Date.new(2026, 9, 10))
-
-      service = LoanService.new(
+    let(:member_repo) { InMemoryMemberRepository.new }
+    let(:book_repo) { InMemoryBookRepository.new }
+    let(:loan_repo) { InMemoryLoanRepository.new }
+    let(:copy_repo) { InMemoryCopyRepository.new }
+    let(:clock) { FixedClock.new(Date.new(2026, 9, 10)) }
+    let(:service) do
+      LoanService.new(
         member_repository: member_repo,
         book_repository: book_repo,
         loan_repository: loan_repo,
         copy_repository: copy_repo,
         clock: clock
       )
+    end
 
+    it "creates a loan and marks the copy as on loan" do
       member = Member.new(id: "member-1", email: "alice@example.com", tier: StandardTier.new)
       member_repo.save(member)
 
@@ -45,40 +46,12 @@ RSpec.describe LoanService do
     end
 
     it "raises MemberNotFoundError when the member does not exist" do
-      member_repo = InMemoryMemberRepository.new
-      book_repo = InMemoryBookRepository.new
-      loan_repo = InMemoryLoanRepository.new
-      copy_repo = InMemoryCopyRepository.new
-      clock = FixedClock.new(Date.new(2026, 9, 10))
-
-      service = LoanService.new(
-        member_repository: member_repo,
-        book_repository: book_repo,
-        loan_repository: loan_repo,
-        copy_repository: copy_repo,
-        clock: clock
-      )
-
       expect {
         service.borrow(member_id: "member-1", isbn: "isbn-dune")
       }.to raise_error(MemberNotFoundError)
     end
 
     it "raises BookNotFoundError when the book does not exist" do
-      member_repo = InMemoryMemberRepository.new
-      book_repo = InMemoryBookRepository.new
-      loan_repo = InMemoryLoanRepository.new
-      copy_repo = InMemoryCopyRepository.new
-      clock = FixedClock.new(Date.new(2026, 9, 10))
-
-      service = LoanService.new(
-        member_repository: member_repo,
-        book_repository: book_repo,
-        loan_repository: loan_repo,
-        copy_repository: copy_repo,
-        clock: clock
-      )
-
       member = Member.new(id: "member-1", email: "alice@example.com", tier: StandardTier.new)
       member_repo.save(member)
 
@@ -88,20 +61,6 @@ RSpec.describe LoanService do
     end
 
     it "raises NoCopiesAvailableError when no copies are available" do
-      member_repo = InMemoryMemberRepository.new
-      book_repo = InMemoryBookRepository.new
-      loan_repo = InMemoryLoanRepository.new
-      copy_repo = InMemoryCopyRepository.new
-      clock = FixedClock.new(Date.new(2026, 9, 10))
-
-      service = LoanService.new(
-        member_repository: member_repo,
-        book_repository: book_repo,
-        loan_repository: loan_repo,
-        copy_repository: copy_repo,
-        clock: clock
-      )
-
       member = Member.new(id: "member-1", email: "alice@example.com", tier: StandardTier.new)
       member_repo.save(member)
 
@@ -111,6 +70,32 @@ RSpec.describe LoanService do
       expect {
         service.borrow(member_id: "member-1", isbn: "isbn-dune")
       }.to raise_error(NoCopiesAvailableError)
+    end
+
+    it "raises LoanLimitExceededError when the member has reached their tier's loan limit" do
+      member = Member.new(id: "member-1", email: "alice@example.com", tier: StandardTier.new)
+      member_repo.save(member)
+
+      3.times do |i|
+        isbn = "isbn-#{i}"
+        book_repo.save(Book.new(isbn: isbn, title: "Book #{i}"))
+        copy = Copy.new(id: copy_repo.next_identity, isbn: isbn, status: :on_loan)
+        copy_repo.save(copy)
+        loan_repo.save(Loan.new(
+          id: loan_repo.next_identity,
+          copy_id: copy.id,
+          member_id: "member-1",
+          borrowed_on: Date.today,
+          due_date: Date.today + 14
+        ))
+      end
+
+      book_repo.save(Book.new(isbn: "isbn-4", title: "Book 4"))
+      copy_repo.save(Copy.new(id: copy_repo.next_identity, isbn: "isbn-4"))
+
+      expect {
+        service.borrow(member_id: "member-1", isbn: "isbn-4")
+      }.to raise_error(LoanLimitExceededError)
     end
   end
 end
