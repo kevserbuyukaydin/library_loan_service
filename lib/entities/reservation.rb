@@ -1,7 +1,7 @@
 require 'date'
 
 class Reservation
-  STATUSES = %i[pending fulfilled].freeze
+  STATUSES = %i[pending awaiting_pickup].freeze
 
   attr_reader :id, :isbn, :member_id, :requested_at, :status
 
@@ -17,11 +17,15 @@ class Reservation
     status == :pending
   end
 
-  def fulfilled?
-    status == :fulfilled
+  def awaiting_pickup?
+    status == :awaiting_pickup
   end
 
-  def fulfill!
-    @status = :fulfilled
+  def open?
+    pending? || awaiting_pickup?
+  end
+
+  def mark_as_awaiting_pickup!
+    @status = :awaiting_pickup
   end
 end

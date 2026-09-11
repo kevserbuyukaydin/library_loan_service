@@ -15,11 +15,11 @@ class ReservationRepository
     raise NotImplementedError
   end
 
-  def find_fulfilled_for(isbn:, member_id:)
+  def find_awaiting_pickup_for(isbn:, member_id:)
     raise NotImplementedError
   end
 
-  def active_count_for_member(member_id)
+  def open_count_for_member(member_id)
     raise NotImplementedError
   end
 
@@ -52,15 +52,15 @@ class InMemoryReservationRepository < ReservationRepository
       .sort_by(&:requested_at)
   end
 
-  def find_fulfilled_for(isbn:, member_id:)
+  def find_awaiting_pickup_for(isbn:, member_id:)
     @reservations.values.find do |reservation|
-      reservation.isbn == isbn && reservation.member_id == member_id && reservation.fulfilled?
+      reservation.isbn == isbn && reservation.member_id == member_id && reservation.awaiting_pickup?
     end
   end
 
-  def active_count_for_member(member_id)
+  def open_count_for_member(member_id)
     @reservations.values.count do |reservation|
-      reservation.member_id == member_id && (reservation.pending? || reservation.fulfilled?)
+      reservation.member_id == member_id && reservation.open?
     end
   end
 

@@ -40,18 +40,18 @@ RSpec.describe ReservationRepository do
     end
   end
 
-  describe "#find_fulfilled_for" do
+  describe "#find_awaiting_pickup_for" do
     it "raises NotImplementedError" do
       expect {
-        ReservationRepository.new.find_fulfilled_for(isbn: "isbn-dune", member_id: "member-1")
+        ReservationRepository.new.find_awaiting_pickup_for(isbn: "isbn-dune", member_id: "member-1")
       }.to raise_error(NotImplementedError)
     end
   end
 
-  describe "#active_count_for_member" do
+  describe "#open_count_for_member" do
     it "raises NotImplementedError" do
       expect {
-        ReservationRepository.new.active_count_for_member("member-1")
+        ReservationRepository.new.open_count_for_member("member-1")
       }.to raise_error(NotImplementedError)
     end
   end
@@ -157,22 +157,22 @@ RSpec.describe InMemoryReservationRepository do
     end
   end
 
-  describe "#find_fulfilled_for" do
-    it "returns the fulfilled reservation for the given isbn and member" do
+  describe "#find_awaiting_pickup_for" do
+    it "returns the awaiting pickup reservation for the given isbn and member" do
       repo = InMemoryReservationRepository.new
-      fulfilled_reservation = Reservation.new(
-                                id: 1,
-                                isbn: "isbn-dune",
-                                member_id: "member-1",
-                                requested_at: Time.now,
-                                status: :fulfilled
-                              )
+      awaiting_pickup_reservation = Reservation.new(
+                                      id: 1,
+                                      isbn: "isbn-dune",
+                                      member_id: "member-1",
+                                      requested_at: Time.now,
+                                      status: :awaiting_pickup
+                                    )
 
-      repo.save(fulfilled_reservation)
+      repo.save(awaiting_pickup_reservation)
 
-      result = repo.find_fulfilled_for(isbn: "isbn-dune", member_id: "member-1")
+      result = repo.find_awaiting_pickup_for(isbn: "isbn-dune", member_id: "member-1")
 
-      expect(result).to eq(fulfilled_reservation)
+      expect(result).to eq(awaiting_pickup_reservation)
     end
 
     it "returns nil when the reservation is pending" do
@@ -186,24 +186,24 @@ RSpec.describe InMemoryReservationRepository do
 
       repo.save(pending_reservation)
 
-      result = repo.find_fulfilled_for(isbn: "isbn-dune", member_id: "member-1")
+      result = repo.find_awaiting_pickup_for(isbn: "isbn-dune", member_id: "member-1")
 
       expect(result).to be_nil
     end
   end
 
-  describe "#active_count_for_member" do
-    it "counts both pending and fulfilled reservations for the member" do
+  describe "#open_count_for_member" do
+    it "counts both pending and awaiting pickup reservations for the member" do
       repo = InMemoryReservationRepository.new
       member_1_pending_reservation = Reservation.new(id: 1, isbn: "isbn-dune", member_id: "member-1", requested_at: Time.now)
-      member_1_fulfilled_reservation = Reservation.new(id: 2, isbn: "isbn-solo", member_id: "member-1", requested_at: Time.now, status: :fulfilled)
+      member_1_awaiting_pickup_reservation = Reservation.new(id: 2, isbn: "isbn-solo", member_id: "member-1", requested_at: Time.now, status: :awaiting_pickup)
       member_2_reservation = Reservation.new(id: 3, isbn: "isbn-1984", member_id: "member-2", requested_at: Time.now)
       
       repo.save(member_1_pending_reservation)
-      repo.save(member_1_fulfilled_reservation)
+      repo.save(member_1_awaiting_pickup_reservation)
       repo.save(member_2_reservation)
 
-      expect(repo.active_count_for_member("member-1")).to eq(2)
+      expect(repo.open_count_for_member("member-1")).to eq(2)
     end
   end
   describe "#next_identity" do

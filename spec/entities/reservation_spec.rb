@@ -35,7 +35,7 @@ RSpec.describe Reservation do
       expect(reservation.pending?).to be true
     end
 
-    it "returns false when status is fulfilled" do
+    it "returns false when status is awaiting_pickup" do
       requested_at = Time.now
 
       reservation = Reservation.new(
@@ -43,15 +43,15 @@ RSpec.describe Reservation do
               isbn: "isbn-dune",
               member_id: "member-1",
               requested_at: requested_at,
-              status: :fulfilled
+              status: :awaiting_pickup
       )
       
       expect(reservation.pending?).to be false
     end
   end
 
-  describe "#fulfilled?" do
-    it "returns true when status is fulfilled" do
+  describe "#awaiting_pickup?" do
+    it "returns true when status is awaiting_pickup" do
       requested_at = Time.now
 
       reservation = Reservation.new(
@@ -59,10 +59,10 @@ RSpec.describe Reservation do
               isbn: "isbn-dune",
               member_id: "member-1",
               requested_at: requested_at,
-              status: :fulfilled
+              status: :awaiting_pickup
       )
       
-      expect(reservation.fulfilled?).to be true
+      expect(reservation.awaiting_pickup?).to be true
     end
 
     it "returns false when status is pending" do
@@ -75,14 +75,14 @@ RSpec.describe Reservation do
               requested_at: requested_at
       )
       
-      expect(reservation.fulfilled?).to be false
+      expect(reservation.awaiting_pickup?).to be false
     end
   end
 
 
 
-  describe "#fulfill!" do
-    it "changes status to fulfilled" do
+  describe "#mark_as_awaiting_pickup!" do
+    it "changes status to awaiting_pickup" do
       requested_at = Time.now
 
       reservation = Reservation.new(
@@ -92,9 +92,9 @@ RSpec.describe Reservation do
               requested_at: requested_at
       )
 
-      reservation.fulfill!
+      reservation.mark_as_awaiting_pickup!
 
-      expect(reservation.fulfilled?).to be true
+      expect(reservation.awaiting_pickup?).to be true
     end
   end
 end
