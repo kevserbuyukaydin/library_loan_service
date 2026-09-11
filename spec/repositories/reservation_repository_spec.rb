@@ -55,6 +55,14 @@ RSpec.describe ReservationRepository do
       }.to raise_error(NotImplementedError)
     end
   end
+  
+  describe "#has_open_reservation?" do
+    it "raises NotImplementedError" do
+      expect {
+        ReservationRepository.new.has_open_reservation?(isbn: "isbn-dune", member_id: "member-1")
+      }.to raise_error(NotImplementedError)
+    end
+  end
 
   describe "#next_identity" do
     it "raises NotImplementedError" do
@@ -204,6 +212,65 @@ RSpec.describe InMemoryReservationRepository do
       repo.save(member_2_reservation)
 
       expect(repo.open_reservation_count_for_member("member-1")).to eq(2)
+    end
+  end
+
+  describe "#has_open_reservation?" do
+    it "returns true when an awaiting_pickup reservation exists" do
+      repo = InMemoryReservationRepository.new
+      awaiting_pickup_reservation = Reservation.new(
+        id: 1,
+        isbn: "isbn-dune",
+        member_id: "member-1",
+        requested_at: Time.now,
+        status: :awaiting_pickup
+      )
+
+      repo.save(awaiting_pickup_reservation)
+
+      expect(repo.has_open_reservation?(isbn: "isbn-dune", member_id: "member-1")).to be true
+    end
+
+    it "returns true when a pending reservation exists" do
+      repo = InMemoryReservationRepository.new
+      pending_reservation = Reservation.new(
+        id: 1,
+        isbn: "isbn-dune",
+        member_id: "member-1",
+        requested_at: Time.now
+      )
+
+      repo.save(pending_reservation)
+
+      expect(repo.has_open_reservation?(isbn: "isbn-dune", member_id: "member-1")).to be true
+    end
+
+    it "returns false when no reservation exists for the given isbn" do
+      repo = InMemoryReservationRepository.new
+      pending_reservation = Reservation.new(
+        id: 1,
+        isbn: "isbn-dune",
+        member_id: "member-1",
+        requested_at: Time.now
+      )
+
+      repo.save(pending_reservation)
+
+      expect(repo.has_open_reservation?(isbn: "isbn-1984", member_id: "member-1")).to be false
+    end
+
+    it "returns false when the reservation belongs to a different member" do
+      repo = InMemoryReservationRepository.new
+      pending_reservation = Reservation.new(
+        id: 1,
+        isbn: "isbn-dune",
+        member_id: "member-1",
+        requested_at: Time.now
+      )
+
+      repo.save(pending_reservation)
+
+      expect(repo.has_open_reservation?(isbn: "isbn-dune", member_id: "member-2")).to be false
     end
   end
   describe "#next_identity" do
